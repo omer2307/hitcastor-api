@@ -1,0 +1,28 @@
+# Node / build
+node_modules/
+dist/
+coverage/
+*.log
+logs/
+.tmp/
+
+# Env & secrets
+.env
+.env.*
+!.env.example
+
+# DB & cache
+docker-data/
+pgdata/
+redisdata/
+
+# Lockfiles
+pnpm-lock.yaml
+yarn.lock
+package-lock.json
+
+# OS / editor
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/
