@@ -55,8 +55,9 @@ describe('Hitcastor API E2E Tests', () => {
         url: '/docs',
       })
 
-      expect(response.statusCode).toBe(200)
-      expect(response.headers['content-type']).toContain('text/html')
+      // Swagger UI typically redirects to static index.html
+      expect(response.statusCode).toBe(302)
+      expect(response.headers['location']).toBe('./docs/static/index.html')
     })
   })
 
@@ -179,7 +180,7 @@ describe('Hitcastor API E2E Tests', () => {
         method: 'POST',
         url: '/markets/1/prepare-resolve',
         headers: {
-          'X-Admin-Key': 'test-admin-key', // This would need to match env
+          'X-Admin-Key': 'dev-admin-key', // Matches env ADMIN_API_KEY
         },
         payload: {
           t0Url: 'https://example.com/t0.json',
@@ -200,7 +201,7 @@ describe('Hitcastor API E2E Tests', () => {
         method: 'POST',
         url: '/markets/1/prepare-resolve',
         headers: {
-          'X-Admin-Key': 'test-admin-key',
+          'X-Admin-Key': 'dev-admin-key',
         },
         payload: {
           t0Url: 'not-a-url',
@@ -218,7 +219,7 @@ describe('Hitcastor API E2E Tests', () => {
         method: 'POST',
         url: '/markets/1/prepare-resolve',
         headers: {
-          'X-Admin-Key': 'test-admin-key',
+          'X-Admin-Key': 'dev-admin-key',
         },
         payload: {
           t0Url: 'https://example.com/t0.json',

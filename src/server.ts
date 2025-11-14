@@ -53,6 +53,14 @@ export async function createServer() {
       docExpansion: 'list',
       deepLinking: false,
     },
+    staticCSP: true,
+    transformStaticCSP: (header) => header,
+    exposeRoute: true,
+  })
+
+  // Expose OpenAPI JSON
+  fastify.get('/openapi.json', async function (request, reply) {
+    return fastify.swagger()
   })
 
   // Health check
