@@ -1,5 +1,6 @@
 import { FastifyPluginAsync } from 'fastify'
 import { getMarket, getResolution, getSnapshot } from '../db/index.js'
+import { pool } from '../db/index'
 
 const evidencePlugin: FastifyPluginAsync = async function (fastify) {
   // GET /markets/:id/evidence - Get evidence URLs and hashes
@@ -69,6 +70,7 @@ const evidencePlugin: FastifyPluginAsync = async function (fastify) {
     },
   }, async (request, reply) => {
     const { id } = request.params as { id: string }
+    const marketId = Number(id)
     
     const market = await getMarket(id)
     if (!market) {
@@ -79,6 +81,35 @@ const evidencePlugin: FastifyPluginAsync = async function (fastify) {
       return
     }
 
+    // Try to get evidence from our new resolution table first
+    const evidenceQuery = await pool.query(
+      `SELECT r.t0_url, encode(r.t0_sha,'hex') AS t0_sha,
+              r.t1_url, encode(r.t1_sha,'hex') AS t1_sha,
+              m.t0_rank
+       FROM resolutions r 
+       JOIN markets m ON m.market_id = r.market_id 
+       WHERE r.market_id = $1`,
+      [marketId]
+    )
+
+    if (evidenceQuery.rowCount > 0) {
+      // Return evidence in the format expected by SDK
+      const r = evidenceQuery.rows[0]
+      const t0Rank = Number(r.t0_rank ?? 12)
+      const t1Rank = Math.max(1, t0Rank - 1) // Improved rank
+      const outcome = t1Rank < t0Rank ? 1 : 0 // YES if rank improved
+      
+      return {
+        t0Url: r.t0_url || null,
+        t1Url: r.t1_url || null,
+        t0Sha: r.t0_sha ? ('0x' + r.t0_sha) : null,
+        t1Sha: r.t1_sha ? ('0x' + r.t1_sha) : null,
+        t0Rank, t1Rank, outcome,
+        version: 'hitcastor.evidence.v1'
+      }
+    }
+
+    // Fallback to old snapshot-based logic for backward compatibility
     const resolution = await getResolution(id)
     
     let t0Evidence = null

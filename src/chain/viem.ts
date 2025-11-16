@@ -1,13 +1,16 @@
 import { createPublicClient, createWalletClient, http, parseAbi, encodePacked, keccak256, parseEther, formatEther } from 'viem'
+import { bscTestnet } from 'viem/chains'
 import { privateKeyToAccount } from 'viem/accounts'
 import { env } from '../env.js'
 import { resolverAbi, factoryAbi, ammAbi, erc20Abi } from './abis.js'
 
 export const publicClient = createPublicClient({
+  chain: bscTestnet,
   transport: http(env.RPC_URL),
 })
 
 export const walletClient = createWalletClient({
+  chain: bscTestnet,
   transport: http(env.RPC_URL),
   account: env.PRIVATE_KEY ? privateKeyToAccount(env.PRIVATE_KEY as `0x${string}`) : undefined,
 })
@@ -39,12 +42,17 @@ export async function getDisputeWindow(): Promise<number> {
 }
 
 export async function readMarketReserves(ammAddress: string): Promise<MarketReserves> {
-  const [reserves] = await publicClient.multicall({
+  const [reserves, quoteVault] = await publicClient.multicall({
     contracts: [
       {
         address: ammAddress as `0x${string}`,
         abi: ammAbi,
-        functionName: 'getReserves',
+        functionName: 'reserves',
+      },
+      {
+        address: ammAddress as `0x${string}`,
+        abi: ammAbi,
+        functionName: 'quoteVault',
       },
     ],
   })
@@ -53,7 +61,12 @@ export async function readMarketReserves(ammAddress: string): Promise<MarketRese
     throw new Error(`Failed to read reserves: ${reserves.error}`)
   }
 
-  const [reserveYes, reserveNo, reserveQuote] = reserves.result
+  if (quoteVault.status === 'failure') {
+    throw new Error(`Failed to read quote vault: ${quoteVault.error}`)
+  }
+
+  const [reserveYes, reserveNo] = reserves.result
+  const reserveQuote = quoteVault.result
 
   // Calculate prices (YES token per quote token)
   const totalReserve = reserveYes + reserveNo

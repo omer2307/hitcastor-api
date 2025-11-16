@@ -98,27 +98,43 @@ export const factoryAbi = [
   }
 ] as const
 
-// AMM ABI - for reading reserves and prices
+// AMM ABI - for reading reserves and prices  
 export const ammAbi = [
   {
     type: 'function',
-    name: 'getReserves',
+    name: 'reserves',
     inputs: [],
     outputs: [
-      { name: 'reserveYes', type: 'uint256' },
-      { name: 'reserveNo', type: 'uint256' },
-      { name: 'reserveQuote', type: 'uint256' }
+      { name: 'yes', type: 'uint256' },
+      { name: 'no', type: 'uint256' }
     ],
     stateMutability: 'view'
   },
   {
     type: 'function',
-    name: 'getAmountOut',
-    inputs: [
-      { name: 'amountIn', type: 'uint256' },
-      { name: 'tokenIn', type: 'address' }
+    name: 'quoteVault',
+    inputs: [],
+    outputs: [{ name: '', type: 'uint256' }],
+    stateMutability: 'view'
+  },
+  {
+    type: 'function',
+    name: 'quoteYesOut',
+    inputs: [{ name: 'quoteIn', type: 'uint256' }],
+    outputs: [
+      { name: 'yesOut', type: 'uint256' },
+      { name: 'priceAfter', type: 'uint256' }
     ],
-    outputs: [{ name: 'amountOut', type: 'uint256' }],
+    stateMutability: 'view'
+  },
+  {
+    type: 'function',
+    name: 'quoteNoOut', 
+    inputs: [{ name: 'quoteIn', type: 'uint256' }],
+    outputs: [
+      { name: 'noOut', type: 'uint256' },
+      { name: 'priceAfter', type: 'uint256' }
+    ],
     stateMutability: 'view'
   }
 ] as const
